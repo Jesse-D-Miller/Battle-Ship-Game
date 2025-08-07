@@ -11,6 +11,15 @@
   font-size: 14px;
 }
 
-.cell.hit { background-color: #e74c3c; }   /* red */
-.cell.miss { background-color: #a3c9ff; }  /* light blue */
-.cell.sunk { background-color: #7f1d1d; color: #fff; } /* dark red */
+.cell.hit {
+  background-color: #e74c3c;
+} /* red */
+
+.cell.miss {
+  background-color: #a3c9ff;
+} /* light blue */
+
+.cell.sunk {
+  background-color: #7f1d1d;
+  color: #fff;
+}

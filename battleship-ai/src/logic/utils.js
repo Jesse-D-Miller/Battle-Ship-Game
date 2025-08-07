@@ -79,8 +79,9 @@ export function placeShipsRandomlyWithIds(boardSize = 10) {
 
 export function isValidTarget(board, r, c) {
   const cell = board[r][c];
-  return cell !== 'hit' && cell !== 'miss';
+  return cell !== 'hit' && cell !== 'miss' && cell !== 'sunk';
 }
+
 
 /**
  * Apply a shot, update board and ships.
