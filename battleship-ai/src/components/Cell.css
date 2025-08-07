@@ -1,0 +1,16 @@
+.cell {
+  width: 30px;
+  height: 30px;
+  border: 1px solid #333;
+  display: inline-block;
+  background-color: #e0e0e0;
+  cursor: pointer;
+}
+
+.cell.hit {
+  background-color: red;
+}
+
+.cell.miss {
+  background-color: lightblue;
+}
