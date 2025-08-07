@@ -1,5 +1,5 @@
-import Cell from './Cell';
-import './Board.css';
+import Cell from "./Cell";
+import "./Board.css";
 
 function Board({ boardData, onCellClick, revealShips = false, disableClicks = false }) {
   return (
@@ -7,10 +7,13 @@ function Board({ boardData, onCellClick, revealShips = false, disableClicks = fa
       {boardData.map((row, rowIndex) => (
         <div className="board-row" key={rowIndex}>
           {row.map((cell, colIndex) => {
-            const displayValue = cell === 'ship' && !revealShips ? 'empty' : cell;
+            const isShip = typeof cell === 'string' && cell.startsWith('ship:');
+            const displayValue = isShip && !revealShips ? 'empty' : (isShip ? 'ship' : cell);
+
             const handleClick = () => {
               if (!disableClicks) onCellClick(rowIndex, colIndex);
             };
+
             return (
               <Cell
                 key={`${rowIndex}-${colIndex}`}
@@ -24,5 +27,6 @@ function Board({ boardData, onCellClick, revealShips = false, disableClicks = fa
     </div>
   );
 }
+
 
 export default Board;
