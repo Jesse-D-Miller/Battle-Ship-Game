@@ -8,12 +8,11 @@ function Board({ boardData, onCellClick, revealShips = false, disableClicks = fa
         <div className="board-row" key={rowIndex}>
           {row.map((cell, colIndex) => {
             const isShip = typeof cell === 'string' && cell.startsWith('ship:');
+            // mask ships unless revealShips
             const displayValue = isShip && !revealShips ? 'empty' : (isShip ? 'ship' : cell);
-
             const handleClick = () => {
               if (!disableClicks) onCellClick(rowIndex, colIndex);
             };
-
             return (
               <Cell
                 key={`${rowIndex}-${colIndex}`}
@@ -27,6 +26,7 @@ function Board({ boardData, onCellClick, revealShips = false, disableClicks = fa
     </div>
   );
 }
+
 
 
 export default Board;

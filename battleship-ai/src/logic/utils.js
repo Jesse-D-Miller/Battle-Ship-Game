@@ -100,9 +100,15 @@ export function applyShotAndUpdate(board, ships, r, c) {
     nextBoard[r][c] = 'hit';
     const s = { ...nextShips[id] };
     s.hits += 1;
+
     if (s.hits >= s.size) {
       s.sunk = true;
+      // Mark ALL coords as sunk on the board
+      for (const [rr, cc] of s.coords) {
+        nextBoard[rr][cc] = 'sunk';
+      }
     }
+
     nextShips[id] = s;
     return { board: nextBoard, ships: nextShips, result: 'hit', sunk: s.sunk ? id : null };
   } else {
@@ -110,6 +116,7 @@ export function applyShotAndUpdate(board, ships, r, c) {
     return { board: nextBoard, ships: nextShips, result: 'miss', sunk: null };
   }
 }
+
 
 export function randomUntargetedCell(board) {
   const candidates = [];
