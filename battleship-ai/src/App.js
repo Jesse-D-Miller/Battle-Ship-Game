@@ -36,11 +36,19 @@ function App() {
       <div style={{ display: "flex", gap: "40px" }}>
         <div>
           <h2>Your Board</h2>
-          <Board boardData={playerBoard} onCellClick={handleAIClick} />
+          <Board
+            boardData={playerBoard}
+            onCellClick={handleAIClick}
+            revealShips // show your ships
+          />
         </div>
         <div>
           <h2>Enemy Board</h2>
-          <Board boardData={aiBoard} onCellClick={handlePlayerClick} />
+          <Board
+            boardData={aiBoard}
+            onCellClick={handlePlayerClick}
+            revealShips={true} // hide enemy ships when set to false
+          />
         </div>
       </div>
     </div>

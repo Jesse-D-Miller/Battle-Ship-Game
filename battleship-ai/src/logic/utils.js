@@ -52,3 +52,10 @@ export function placeShipsRandomly(boardSize = 10) {
 
   return board;
 }
+
+export function isValidTarget(board, r, c) {
+  const cell = board[r][c];
+  return cell !== 'hit' && cell !== 'miss';
+}
+
+export function applyShot
