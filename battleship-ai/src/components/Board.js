@@ -1,4 +1,3 @@
-// Board.js
 import { useState } from "react";
 import Cell from "./Cell";
 import "./Board.css";
@@ -8,19 +7,31 @@ function Board({
   onCellClick,
   revealShips = false,
   disableClicks = false,
-  previewGenerator = null,
+  previewGenerator = null, // function (r, c) => { coords, valid } | null
 }) {
   const [hoverCell, setHoverCell] = useState(null);
 
+  // Build preview from hover position
   const preview =
-    hoverCell && previewGenerator ? previewGenerator(hoverCell.r, hoverCell.c) : null;
+    hoverCell && previewGenerator
+      ? previewGenerator(hoverCell.r, hoverCell.c)
+      : null;
 
-  const inPreview = new Set(preview?.coords?.map(([r, c]) => `${r},${c}`) ?? []);
+  const inPreview = new Set(
+    preview?.coords?.map(([r, c]) => `${r},${c}`) ?? []
+  );
 
-  const sameShip = (r, c, id) => {
-    if (r < 0 || c < 0 || r >= boardData.length || c >= boardData[0].length) return false;
-    const v = boardData[r][c];
-    return typeof v === "string" && v.startsWith("ship:") && v.split(":")[1] === id;
+  // Helper: is the neighbor the same ship token? (e.g., "ship:2")
+  const sameShip = (r, c, token) => {
+    if (
+      r < 0 ||
+      c < 0 ||
+      r >= boardData.length ||
+      c >= boardData[0].length
+    ) {
+      return false;
+    }
+    return boardData[r][c] === token;
   };
 
   return (
@@ -28,33 +39,38 @@ function Board({
       {boardData.map((row, r) => (
         <div className="board-row" key={r}>
           {row.map((cell, c) => {
-            const isShipCell =
+            const isShipToken =
               typeof cell === "string" && cell.startsWith("ship:");
-            const shipId = isShipCell ? cell.split(":")[1] : null;
-
-            // what to display
             const displayValue =
-              isShipCell && !revealShips ? "empty" : isShipCell ? "ship" : cell;
+              isShipToken && !revealShips
+                ? "empty"
+                : isShipToken
+                ? "ship"
+                : cell;
 
-            // preview classes
+            // Hover preview class
             const previewClass = inPreview.has(`${r},${c}`)
               ? preview?.valid
                 ? "preview-ok"
                 : "preview-bad"
               : "";
 
-            // outline classes (only for visible ships)
-            let outlineClasses = "";
-            if (revealShips && isShipCell) {
-              const top = !sameShip(r - 1, c, shipId);
-              const right = !sameShip(r, c + 1, shipId);
-              const bottom = !sameShip(r + 1, c, shipId);
-              const left = !sameShip(r, c - 1, shipId);
-              outlineClasses =
-                `${top ? "ship-outline-top " : ""}` +
-                `${right ? "ship-outline-right " : ""}` +
-                `${bottom ? "ship-outline-bottom " : ""}` +
-                `${left ? "ship-outline-left " : ""}`;
+            // Ship outline via CSS var --ship-shadow (no layout shift)
+            let extraStyle;
+            if (revealShips && isShipToken) {
+              const token = cell; // e.g., "ship:3"
+              const shadows = [];
+              // top
+              if (!sameShip(r - 1, c, token)) shadows.push("inset 0 2px 0 #0e7a3a");
+              // right
+              if (!sameShip(r, c + 1, token)) shadows.push("inset -2px 0 0 #0e7a3a");
+              // bottom
+              if (!sameShip(r + 1, c, token)) shadows.push("inset 0 -2px 0 #0e7a3a");
+              // left
+              if (!sameShip(r, c - 1, token)) shadows.push("inset 2px 0 0 #0e7a3a");
+              if (shadows.length) {
+                extraStyle = { "--ship-shadow": shadows.join(", ") };
+              }
             }
 
             const handleClick = () => {
@@ -65,7 +81,8 @@ function Board({
               <Cell
                 key={`${r}-${c}`}
                 value={displayValue}
-                extraClass={`${previewClass} ${outlineClasses}`.trim()}
+                extraClass={previewClass}
+                extraStyle={extraStyle}
                 onClick={handleClick}
                 onMouseEnter={() => setHoverCell({ r, c })}
                 onMouseLeave={() => setHoverCell(null)}
