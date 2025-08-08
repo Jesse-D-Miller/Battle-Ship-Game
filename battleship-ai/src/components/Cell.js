@@ -5,7 +5,7 @@ function Cell({ value, onClick, onMouseEnter, onMouseLeave, extraClass = '' }) {
   if (value === 'miss') symbol = '•';
   if (value === 'hit') symbol = '✕';
   if (value === 'sunk') symbol = '☠︎';
-  if (value === 'ship') symbol = '🚢';
+  if (value === 'ship') symbol = '';
 
   return (
     <div

@@ -219,46 +219,34 @@ function App() {
   <h1>Battleship AI</h1>
 
   {/* --- Controls bar --- */}
-  <div
-    style={{
-      display: "flex",
-      gap: 16,
-      alignItems: "center",
-      marginBottom: 20,
-      flexWrap: "wrap",
-      position: "relative",
-      zIndex: 1,
-    }}
-  >
-    {/* Difficulty */}
-    <label style={{ display: "inline-flex", gap: 8, alignItems: "center" }}>
-      <span>Difficulty:</span>
-      <select
-        value={difficulty}
-        onChange={(e) => setDifficulty(e.target.value)}
-        disabled={turn !== "placement"}
-      >
-        <option value="easy">Easy</option>
-        <option value="medium">Medium</option>
-        <option value="hard">Hard</option>
-      </select>
-    </label>
+  <div className="controls-bar">
+  <label style={{ display: "inline-flex", gap: 8, alignItems: "center" }}>
+    <span>Difficulty:</span>
+    <select
+      value={difficulty}
+      onChange={(e) => setDifficulty(e.target.value)}
+      disabled={turn !== "placement"}
+    >
+      <option value="easy">Easy</option>
+      <option value="medium">Medium</option>
+      <option value="hard">Hard</option>
+    </select>
+  </label>
 
-    {/* Rotate */}
-    {turn === "placement" && (
-      <>
-        <button onClick={() => setHorizontal((h) => !h)}>
-          Rotate: {horizontal ? "Horizontal" : "Vertical"}
-        </button>
-        <span>
-          Placing: <strong>{placingShip.name}</strong> ({placingShip.size})
-        </span>
-      </>
-    )}
+  {turn === "placement" && (
+    <>
+      <button type="button" onClick={() => setHorizontal(h => !h)}>
+        Rotate: {horizontal ? "Horizontal" : "Vertical"}
+      </button>
+      <span>
+        Placing: <strong>{placingShip.name}</strong> ({placingShip.size})
+      </span>
+    </>
+  )}
 
-    {/* Restart */}
-    <button onClick={resetGame}>Restart</button>
-  </div>
+  <button type="button" onClick={resetGame}>Restart</button>
+</div>
+
 
   {/* --- Boards area --- */}
   <div
