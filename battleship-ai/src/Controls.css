@@ -1,0 +1,49 @@
+/* Controls container above everything */
+.controls-bar {
+  position: relative;
+  z-index: 10; /* above the game board */
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  background-color: #fff; /* prevent transparent overlap */
+  padding: 4px;
+}
+
+/* Buttons & selects get full click area */
+button,
+select {
+  display: inline-flex;           /* ensures clickable area = visual box */
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  font-size: 16px;
+  padding: 0 16px;
+  border-radius: 6px;
+  border: 1px solid #333;
+  background-color: #f0f0f0;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  box-sizing: border-box;         /* avoids padding messing with hitbox */
+}
+
+button:hover,
+select:hover {
+  background-color: #e0e0e0;
+}
+
+button:active {
+  background-color: #ccc;
+  transform: scale(0.97);
+}
+
+select {
+  min-width: 120px;
+}
+
+/* Make sure the board is always underneath controls */
+.board {
+  position: relative;
+  z-index: 1; /* lower than controls-bar */
+}

@@ -7,14 +7,17 @@ function Cell({ value, onClick, onMouseEnter, onMouseLeave, extraClass = '' }) {
   if (value === 'sunk') symbol = '☠︎';
   if (value === 'ship') symbol = '🚢';
 
-return (
+  return (
     <div
       className={`cell ${value} ${extraClass}`.trim()}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-    />
+    >
+      {symbol}
+    </div>
   );
 }
+
 
 export default Cell;

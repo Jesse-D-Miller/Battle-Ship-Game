@@ -12,6 +12,7 @@ import {
   canPlaceShip,
 } from "./logic/utils";
 import { chooseAIMove, mediumHandleResult } from "./logic/ai";
+import './Controls.css';
 
 function App() {
   // --- AI: random at start
@@ -215,98 +216,116 @@ function App() {
 
   return (
     <div style={{ padding: "20px" }}>
-      <h1>Battleship AI</h1>
+  <h1>Battleship AI</h1>
 
-      <div
-        style={{
-          display: "flex",
-          gap: 16,
-          alignItems: "center",
-          marginBottom: 8,
-        }}
+  {/* --- Controls bar --- */}
+  <div
+    style={{
+      display: "flex",
+      gap: 16,
+      alignItems: "center",
+      marginBottom: 20,
+      flexWrap: "wrap",
+      position: "relative",
+      zIndex: 1,
+    }}
+  >
+    {/* Difficulty */}
+    <label style={{ display: "inline-flex", gap: 8, alignItems: "center" }}>
+      <span>Difficulty:</span>
+      <select
+        value={difficulty}
+        onChange={(e) => setDifficulty(e.target.value)}
+        disabled={turn !== "placement"}
       >
-        <label style={{ display: "inline-flex", gap: 8, alignItems: "center" }}>
-          <span>Difficulty:</span>
-          <select
-            value={difficulty}
-            onChange={(e) => setDifficulty(e.target.value)}
-            disabled={turn !== "placement"}
-          >
-            <option value="easy">Easy</option>
-            <option value="medium">Medium</option>
-            <option value="hard">Hard</option>
-          </select>
-        </label>
+        <option value="easy">Easy</option>
+        <option value="medium">Medium</option>
+        <option value="hard">Hard</option>
+      </select>
+    </label>
 
-        {turn === "placement" && (
-          <>
-            <button onClick={() => setHorizontal((h) => !h)}>
-              Rotate: {horizontal ? "Horizontal" : "Vertical"}
-            </button>
-            <span>
-              Placing: <strong>{placingShip.name}</strong> ({placingShip.size})
-            </span>
-          </>
-        )}
+    {/* Rotate */}
+    {turn === "placement" && (
+      <>
+        <button onClick={() => setHorizontal((h) => !h)}>
+          Rotate: {horizontal ? "Horizontal" : "Vertical"}
+        </button>
+        <span>
+          Placing: <strong>{placingShip.name}</strong> ({placingShip.size})
+        </span>
+      </>
+    )}
 
-        <button onClick={resetGame}>Restart</button>
-      </div>
+    {/* Restart */}
+    <button onClick={resetGame}>Restart</button>
+  </div>
 
-      <div style={{ display: "flex", gap: "40px", alignItems: "flex-start" }}>
-        <div>
-          <h2>Your Board</h2>
-          <Board
-            boardData={playerBoard}
-            onCellClick={turn === "placement" ? handlePlaceClick : () => {}}
-            revealShips
-            disableClicks={turn !== "placement"}
-            previewGenerator={makePlacementPreview}
-          />
-          <ul style={{ marginTop: 10 }}>
-            {SHIPS.map((s) => {
-              const ss = playerShips[s.id];
-              return (
-                <li key={s.id}>
-                  {s.name}:{" "}
-                  {ss
-                    ? `${ss.hits}/${ss.size}${ss.sunk ? " — Sunk" : ""}`
-                    : "— not placed"}
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-
-        <div>
-          <h2>Enemy Board</h2>
-          <Board
-            boardData={aiBoard}
-            onCellClick={handlePlayerClick}
-            revealShips={false}
-            disableClicks={gameOver || turn !== "player"}
-          />
-          <ul style={{ marginTop: 10 }}>
-            {Object.values(aiShips).map((s) => (
-              <li key={s.id}>
-                {s.name}: {s.sunk ? "Sunk" : "???"}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-
-      <div style={{ marginTop: 16 }}>
-        <p style={{ margin: 0 }}>
-          <strong>Status:</strong>{" "}
-          {gameOver
-            ? `Game Over — ${winner === "player" ? "You Win!" : "You Lose."}`
-            : turn === "placement"
-            ? "Placing ships…"
-            : `Turn: ${turn}`}
-        </p>
-        <p>{lastEvent}</p>
-      </div>
+  {/* --- Boards area --- */}
+  <div
+    style={{
+      display: "flex",
+      gap: "40px",
+      alignItems: "flex-start",
+      position: "relative",
+      zIndex: 0,
+    }}
+  >
+    <div>
+      <h2>Your Board</h2>
+      <Board
+        boardData={playerBoard}
+        onCellClick={turn === "placement" ? handlePlaceClick : () => {}}
+        revealShips
+        disableClicks={turn !== "placement"}
+        previewGenerator={makePlacementPreview}
+      />
+      <ul style={{ marginTop: 10 }}>
+        {SHIPS.map((s) => {
+          const ss = playerShips[s.id];
+          return (
+            <li key={s.id}>
+              {s.name}:{" "}
+              {ss
+                ? `${ss.hits}/${ss.size}${ss.sunk ? " — Sunk" : ""}`
+                : "— not placed"}
+            </li>
+          );
+        })}
+      </ul>
     </div>
+
+    <div>
+      <h2>Enemy Board</h2>
+      <Board
+        boardData={aiBoard}
+        onCellClick={handlePlayerClick}
+        revealShips={false}
+        disableClicks={gameOver || turn !== "player"}
+      />
+      <ul style={{ marginTop: 10 }}>
+        {Object.values(aiShips).map((s) => (
+          <li key={s.id}>
+            {s.name}: {s.sunk ? "Sunk" : "???"}
+          </li>
+        ))}
+      </ul>
+    </div>
+  </div>
+
+  {/* --- Status text --- */}
+  <div style={{ marginTop: 20, position: "relative", zIndex: 1 }}>
+    <p style={{ margin: 0 }}>
+      <strong>Status:</strong>{" "}
+      {gameOver
+        ? `Game Over — ${winner === "player" ? "You Win!" : "You Lose."}`
+        : turn === "placement"
+        ? "Placing ships…"
+        : `Turn: ${turn}`}
+    </p>
+    <p>{lastEvent}</p>
+  </div>
+</div>
+
   );
 }
 
