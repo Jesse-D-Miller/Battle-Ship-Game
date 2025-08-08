@@ -134,3 +134,64 @@ export function randomUntargetedCell(board) {
 export function allShipsSunk(ships) {
   return Object.values(ships).every(s => s.sunk);
 }
+
+export function generateEmptyBoard(size = 10) {
+  return Array(size).fill(null).map(() => Array(size).fill('empty'));
+}
+
+export function canPlaceShip(board, r, c, size, horizontal) {
+  const n = board.length;
+  if (horizontal) {
+    if (c + size > n) return false;
+    for (let i = 0; i < size; i++) {
+      if (board[r][c + i] !== 'empty') return false;
+    }
+  } else {
+    if (r + size > n) return false;
+    for (let i = 0; i < size; i++) {
+      if (board[r + i][c] !== 'empty') return false;
+    }
+  }
+  return true;
+}
+
+/**
+ * Place a specific ship def {id, name, size} at r,c.
+ * Returns { board, ships } or null if invalid.
+ */
+export function placeSpecificShip(board, ships, shipDef, r, c, horizontal) {
+  if (!canPlaceShip(board, r, c, shipDef.size, horizontal)) return null;
+
+  const nextBoard = board.map(row => [...row]);
+  const coords = [];
+  for (let i = 0; i < shipDef.size; i++) {
+    const rr = r + (horizontal ? 0 : i);
+    const cc = c + (horizontal ? i : 0);
+    nextBoard[rr][cc] = `ship:${shipDef.id}`;
+    coords.push([rr, cc]);
+  }
+
+  const nextShips = {
+    ...ships,
+    [shipDef.id]: {
+      id: shipDef.id,
+      name: shipDef.name,
+      size: shipDef.size,
+      hits: 0,
+      coords,
+      sunk: false,
+    },
+  };
+
+  return { board: nextBoard, ships: nextShips };
+}
+
+export function getPlacementCoords(r, c, size, horizontal, boardSize = 10) {
+  const coords = [];
+  for (let i = 0; i < size; i++) {
+    const rr = r + (horizontal ? 0 : i);
+    const cc = c + (horizontal ? i : 0);
+    coords.push([rr, cc]);
+  }
+  return coords.filter(([rr, cc]) => rr >= 0 && rr < boardSize && cc >= 0 && cc < boardSize);
+}
