@@ -1,5 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Board from "./components/Board";
+import Scoreboard from "./components/Scoreboard";
+import "./components/Scoreboard.css";
+import "./Controls.css";
+
 import {
   SHIPS,
   placeShipsRandomlyWithIds,
@@ -12,7 +16,6 @@ import {
   canPlaceShip,
 } from "./logic/utils";
 import { chooseAIMove, mediumHandleResult } from "./logic/ai";
-import './Controls.css';
 
 function App() {
   // --- AI: random at start
@@ -27,13 +30,13 @@ function App() {
   const [horizontal, setHorizontal] = useState(true);
 
   // --- Game meta
-  const [turn, setTurn] = useState("placement");
+  const [turn, setTurn] = useState("placement"); // 'placement' | 'player' | 'ai'
   const [gameOver, setGameOver] = useState(false);
-  const [winner, setWinner] = useState(null);
+  const [winner, setWinner] = useState(null); // 'player' | 'ai' | null
   const [lastEvent, setLastEvent] = useState("");
 
   // --- Difficulty + AI memory
-  const [difficulty, setDifficulty] = useState("easy");
+  const [difficulty, setDifficulty] = useState("easy"); // 'easy' | 'medium' | 'hard'
   const [aiState, setAIState] = useState({
     mode: difficulty,
     queue: [],
@@ -43,7 +46,39 @@ function App() {
     setAIState((s) => ({ ...s, mode: difficulty }));
   }, [difficulty]);
 
-  // --- Preview generator (called inside Board)
+  // --- Scoreboard (persisted)
+  const defaultScores = {
+    easy: { wins: 0, losses: 0 },
+    medium: { wins: 0, losses: 0 },
+    hard: { wins: 0, losses: 0 },
+  };
+  const [scores, setScores] = useState(defaultScores);
+
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("bs-scores"));
+      if (saved && typeof saved === "object") {
+        setScores({
+          easy: { wins: saved?.easy?.wins ?? 0, losses: saved?.easy?.losses ?? 0 },
+          medium: { wins: saved?.medium?.wins ?? 0, losses: saved?.medium?.losses ?? 0 },
+          hard: { wins: saved?.hard?.wins ?? 0, losses: saved?.hard?.losses ?? 0 },
+        });
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("bs-scores", JSON.stringify(scores));
+  }, [scores]);
+
+  const recordedRef = useRef(false); // ensure we only record a result once per game
+
+  const resetStats = () => {
+    setScores(defaultScores);
+    localStorage.removeItem("bs-scores");
+  };
+
+  // --- Preview generator (Board owns hover; we just compute)
   const makePlacementPreview = (r, c) => {
     if (turn !== "placement") return null;
     const shipDef = SHIPS[placingIndex];
@@ -114,15 +149,27 @@ function App() {
         setGameOver(true);
         setWinner("player");
         setLastEvent("You win! All enemy ships sunk.");
+
+        if (!recordedRef.current) {
+          setScores((prev) => ({
+            ...prev,
+            [difficulty]: {
+              ...prev[difficulty],
+              wins: (prev[difficulty]?.wins ?? 0) + 1,
+            },
+          }));
+          recordedRef.current = true;
+        }
         return;
       }
+      // keep player's turn on hit
     } else {
       setLastEvent("Miss. Enemy turn.");
       setTurn("ai");
     }
   };
 
-  // --- AI turn
+  // --- AI turn (keeps firing on hits)
   useEffect(() => {
     if (gameOver || turn !== "ai") return;
 
@@ -157,6 +204,17 @@ function App() {
         setGameOver(true);
         setWinner("ai");
         setLastEvent("Defeat. All your ships are sunk.");
+
+        if (!recordedRef.current) {
+          setScores((prev) => ({
+            ...prev,
+            [difficulty]: {
+              ...prev[difficulty],
+              losses: (prev[difficulty]?.losses ?? 0) + 1,
+            },
+          }));
+          recordedRef.current = true;
+        }
         return;
       }
 
@@ -173,11 +231,7 @@ function App() {
       }
     };
 
-    const start = setTimeout(
-      () => fire(playerBoard, playerShips, aiState),
-      350
-    );
-
+    const start = setTimeout(() => fire(playerBoard, playerShips, aiState), 350);
     return () => {
       cancelled = true;
       clearTimeout(start);
@@ -201,6 +255,7 @@ function App() {
     setWinner(null);
     setLastEvent("Place your ships to begin.");
     setAIState({ mode: difficulty, queue: [], lastHits: [] });
+    recordedRef.current = false; // allow next result to be recorded
   };
 
   // --- Boot message
@@ -216,104 +271,103 @@ function App() {
 
   return (
     <div style={{ padding: "20px" }}>
-  <h1>Battleship AI</h1>
+      <h1>Battleship AI</h1>
 
-  {/* --- Controls bar --- */}
-  <div className="controls-bar">
-  <label style={{ display: "inline-flex", gap: 8, alignItems: "center" }}>
-    <span>Difficulty:</span>
-    <select
-      value={difficulty}
-      onChange={(e) => setDifficulty(e.target.value)}
-      disabled={turn !== "placement"}
-    >
-      <option value="easy">Easy</option>
-      <option value="medium">Medium</option>
-      <option value="hard">Hard</option>
-    </select>
-  </label>
+      {/* --- Controls bar --- */}
+      <div className="controls-bar">
+        <label style={{ display: "inline-flex", gap: 8, alignItems: "center" }}>
+          <span>Difficulty:</span>
+          <select
+            value={difficulty}
+            onChange={(e) => setDifficulty(e.target.value)}
+            disabled={turn !== "placement"}
+          >
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+        </label>
 
-  {turn === "placement" && (
-    <>
-      <button type="button" onClick={() => setHorizontal(h => !h)}>
-        Rotate: {horizontal ? "Horizontal" : "Vertical"}
-      </button>
-      <span>
-        Placing: <strong>{placingShip.name}</strong> ({placingShip.size})
-      </span>
-    </>
-  )}
+        {turn === "placement" && (
+          <>
+            <button type="button" onClick={() => setHorizontal((h) => !h)}>
+              Rotate: {horizontal ? "Horizontal" : "Vertical"}
+            </button>
+            <span>
+              Placing: <strong>{placingShip.name}</strong> ({placingShip.size})
+            </span>
+          </>
+        )}
 
-  <button type="button" onClick={resetGame}>Restart</button>
-</div>
+        <button type="button" onClick={resetGame}>Restart</button>
+      </div>
 
+      {/* --- Boards + Scoreboard --- */}
+      <div className="boards-wrap" style={{ display: "flex", gap: "40px", alignItems: "flex-start" }}>
+        <div>
+          <h2>Your Board</h2>
+          <Board
+            boardData={playerBoard}
+            onCellClick={turn === "placement" ? handlePlaceClick : () => {}}
+            revealShips
+            disableClicks={turn !== "placement"}
+            previewGenerator={makePlacementPreview}
+          />
+          <ul style={{ marginTop: 10 }}>
+            {SHIPS.map((s) => {
+              const ss = playerShips[s.id];
+              return (
+                <li key={s.id}>
+                  {s.name}:{" "}
+                  {ss
+                    ? `${ss.hits}/${ss.size}${ss.sunk ? " — Sunk" : ""}`
+                    : "— not placed"}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
 
-  {/* --- Boards area --- */}
-  <div
-    style={{
-      display: "flex",
-      gap: "40px",
-      alignItems: "flex-start",
-      position: "relative",
-      zIndex: 0,
-    }}
-  >
-    <div>
-      <h2>Your Board</h2>
-      <Board
-        boardData={playerBoard}
-        onCellClick={turn === "placement" ? handlePlaceClick : () => {}}
-        revealShips
-        disableClicks={turn !== "placement"}
-        previewGenerator={makePlacementPreview}
-      />
-      <ul style={{ marginTop: 10 }}>
-        {SHIPS.map((s) => {
-          const ss = playerShips[s.id];
-          return (
-            <li key={s.id}>
-              {s.name}:{" "}
-              {ss
-                ? `${ss.hits}/${ss.size}${ss.sunk ? " — Sunk" : ""}`
-                : "— not placed"}
-            </li>
-          );
-        })}
-      </ul>
+        <div>
+          <h2>Enemy Board</h2>
+          <Board
+            boardData={aiBoard}
+            onCellClick={handlePlayerClick}
+            revealShips={false}
+            disableClicks={gameOver || turn !== "player"}
+          />
+          <ul style={{ marginTop: 10 }}>
+            {Object.values(aiShips).map((s) => (
+              <li key={s.id}>
+                {s.name}: {s.sunk ? "Sunk" : "???"}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Scoreboard */}
+        <div>
+          <Scoreboard
+            scores={scores}
+            currentDifficulty={difficulty}
+            onReset={resetStats}
+          />
+        </div>
+      </div>
+
+      {/* --- Status text --- */}
+      <div style={{ marginTop: 20, position: "relative", zIndex: 1 }}>
+        <p style={{ margin: 0 }}>
+          <strong>Status:</strong>{" "}
+          {gameOver
+            ? `Game Over — ${winner === "player" ? "You Win!" : "You Lose."}`
+            : turn === "placement"
+            ? "Placing ships…"
+            : `Turn: ${turn}`}
+        </p>
+        <p>{lastEvent}</p>
+      </div>
     </div>
-
-    <div>
-      <h2>Enemy Board</h2>
-      <Board
-        boardData={aiBoard}
-        onCellClick={handlePlayerClick}
-        revealShips={false}
-        disableClicks={gameOver || turn !== "player"}
-      />
-      <ul style={{ marginTop: 10 }}>
-        {Object.values(aiShips).map((s) => (
-          <li key={s.id}>
-            {s.name}: {s.sunk ? "Sunk" : "???"}
-          </li>
-        ))}
-      </ul>
-    </div>
-  </div>
-
-  {/* --- Status text --- */}
-  <div style={{ marginTop: 20, position: "relative", zIndex: 1 }}>
-    <p style={{ margin: 0 }}>
-      <strong>Status:</strong>{" "}
-      {gameOver
-        ? `Game Over — ${winner === "player" ? "You Win!" : "You Lose."}`
-        : turn === "placement"
-        ? "Placing ships…"
-        : `Turn: ${turn}`}
-    </p>
-    <p>{lastEvent}</p>
-  </div>
-</div>
-
   );
 }
 

@@ -1,0 +1,37 @@
+.scoreboard {
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 10px;
+  min-width: 220px;
+  background: #fff;
+}
+
+.scoreboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.scoreboard-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
+  padding: 6px 4px;
+  border-top: 1px solid #ddd;
+}
+
+.scoreboard-row:first-of-type {
+  border-top: none;
+}
+
+.scoreboard-total {
+  font-weight: 600;
+  background: #f7f7f7;
+  border-radius: 6px;
+}
+
+.scoreboard-row.active {
+  background: #eef8ff;
+  border-radius: 6px;
+}
